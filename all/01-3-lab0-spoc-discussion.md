@@ -18,11 +18,25 @@
 
 - 你理解的对于类似ucore这样需要进程/虚存/文件系统的操作系统，在硬件设计上至少需要有哪些直接的支持？至少应该提供哪些功能的特权指令？
 
-- 你理解的x86的实模式和保护模式有什么区别？你认为从实模式切换到保护模式需要注意那些方面？
+  需要硬件支持时钟中断，虚存需要通过MMU转换，文件系统需要可靠存储介质的支持。特权指令应该有允许和禁止中断，控制中断禁止屏蔽位，进程切换，存储保护，执行I/O等。
+
+- 你理解的x86的实模式和保护模式有什么区别？你理解的x86的实模式和保护模式有什么区别？你认为从实模式切换到保护模式需要注意那些方面？
+
+  实模式只有16位寻址空间，对应内存；而保护模式有32位寻址空间，进程收到保护。切换时应该注意寻址空间变化，进程保护，寄存器的更改等。
 
 - 物理地址、线性地址、逻辑地址的含义分别是什么？它们之间有什么联系？
 
-- 你理解的risc-v的特权模式有什么区别？不同 模式在地址访问方面有何特征？
+  物理地址就是对应到内存最终的地址，逻辑地址是访问指令中给出的地址，通过段页转换可得到物理地址；线性地址是逻辑地址到物理地址中间的转换阶段。
+
+- 你理解的risc-v的特权模式有什么区别？不同模式在地址访问方面有何特征？
+
+  机器模式是可以执行的最高的权限模式，最重要的特性是拦截和处理异常的能力，地址空间是物理内存空间。
+
+  用户模式不可以执行特权指令，例如eret，并且只能访问自己的那部分内存。
+
+  监督者模式位于机器模式和用户模式之间，使用基于页面的虚拟内存。
+
+  一旦发生异常都会转移到M模式。
 
 - 理解ucore中list_entry双向链表数据结构及其4个基本操作函数和ucore中一些基于它的代码实现（此题不用填写内容）
 
@@ -41,6 +55,8 @@
     unsigned gd_off_31_16 : 16;        // high bits of offset in segment
  };
 ```
+
+unsigned表示unsigned int，(unsigned variable: 数字)的形式表示variable这个变量占所		填充数字那么多的比特位，能够更有效利用空间。
 
 - 对于如下的代码段，
 
@@ -65,22 +81,77 @@ SETGATE(intr, 1,2,3,0);
 ```
 请问执行上述指令后， intr的值是多少？
 
+Intr = 0x20003
+
 ### 课堂实践练习
 
 #### 练习一
 
 1. 请在ucore中找一段你认为难度适当的AT&T格式X86汇编代码，尝试解释其含义。
 
+   选取`entry.S`：
+
+   ```assembly
+   .text
+   .globl kernel_thread_entry
+   kernel_thread_entry:        # void kernel_thread(void)
+   
+       pushl %edx              # push arg
+       call *%ebx              # call fn
+   
+       pushl %eax              # save the return value of fn(arg)
+       call do_exit            # call do_exit to terminate current thread
+   ```
+
+   这段汇编代码的意思是：首先将参数压栈，调用函数，之后保存函数的返回值，杀死这个线程。
+
 2. (option)请在rcore中找一段你认为难度适当的RV汇编代码，尝试解释其含义。
+
+   `entry.S`:
+
+   ```assembly
+       .section .text.entry
+       .globl _start
+   _start:
+       add t0, a0, 1
+       slli t0, t0, 16
+       
+       lui sp, %hi(bootstack)
+       addi sp, sp, %lo(bootstack)
+       add sp, sp, t0
+   
+       call rust_main
+   
+       .section .bss.stack
+       .align 12  #PGSHIFT
+       .global bootstack
+   bootstack:
+       .space 4096 * 16 * 8
+       .global bootstacktop
+   bootstacktop:
+   ```
+
+   开始执行
 
 #### 练习二
 
 宏定义和引用在内核代码中很常用。请枚举ucore或rcore中宏定义的用途，并举例描述其含义。
 
+答：宏能够有效减少函数调用，提升程序的运行时间。
+
+```c
+#define static_assert(x)                                \
+    switch (x) { case 0: case (x): ; }
+```
+
+使用该宏，当x为0时会出现编译错误。
+
 
 ## 问答题
 
-#### 在配置实验环境时，你遇到了那些问题，是如何解决的。
+#### 在配置实验环境时，你遇到了哪些问题，是如何解决的。
+
+我采用从ubuntu镜像创建虚拟机，通过指导书，没什么问题，但是调试有点小bug还没解决。
 
 ## 参考资料
  - [Intel格式和AT&T格式汇编区别](http://www.cnblogs.com/hdk1993/p/4820353.html)
