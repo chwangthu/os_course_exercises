@@ -24,7 +24,7 @@ x86应用程序中的C函数调用中不需要用到\(\)指令
 
 GCC的x86内联汇编 `asm("movl %ecx, %eax");` 的含义是\(\)
 
-* [ ] 把 ecx 内容移动到 eax 
+* [x] 把 ecx 内容移动到 eax 
 * [ ] 把 eax 内容移动到 ecx 
 
 > 把 ecx 内容移动到 eax
