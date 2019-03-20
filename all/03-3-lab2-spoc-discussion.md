@@ -20,11 +20,26 @@ NOTICE
 
 1. X86有几个特权级？
 
+   四个
+
 
 2. 不同特权级有什么区别？
 
+   特权指令只能在ring0使用，不同特权级的功能不同。
+
 
 3. 请说明CPL、DPL和RPL在中断响应、函数调用和指令执行时的作用。
+   - 中断响应要求：CPL <= DPL(门) and CPL >= DPL(段)
+   - 指令执行
+     - 特权指令只能在 ring 0 执行
+     - 访存
+       - 数据段: max(CPL, RPL) <= DPL
+       - 栈段: CPL=RPL=DPL
+       - 代码段：略（不常见，参见<https://pdos.csail.mit.edu/6.828/2007/readings/i386/s06_03.htm> "Accessing Data in Code Segments"）
+     - I/O指令：允许 iff CPL < IOPL or TSS中的I/O port permissions中相应位设1
+   - 跳转
+     - near jmp / call / ret：无作用
+     - far jmp / call（通过另一个段的描述符/通过call gate）：(a) 目标段DPL = CPL 或 (b) 目标段描述符的conforming bit设为1，且目标DPL <= CPL
 
 
 4. 写一个示例程序，完成4个特权级间的函数调用和数据访问时特权级控制的作用。
@@ -32,15 +47,24 @@ NOTICE
 ### 7.2 了解特权级切换过程
 
 1. 一条指令在执行时会有哪些可能的特权级判断？
+
 2. 在什么情况下会出现特权级切换？
 
+   用户态中断时，中断返回时
+
 3. int指令在ring0和ring3的执行行为有什么不同？
+
+   在ring0时不需要保存ss和ESP，而ring3时需要，并且CPL设置的也不同
 
 
 4. 如何利用int和iret指令完成不同特权级的切换？
 
+   根据栈中的数据
+
 
 5. TSS和Task Register的作用是什么？
+
+   TSS用于存放ring0-3的ss、esp和一些数据，Task Register是缓存
 
  > [Task state segment](https://en.wikipedia.org/wiki/Task_state_segment)
 
@@ -49,13 +73,36 @@ NOTICE
 ### 7.3 了解段/页表
 
 1. 一条指令执行时最多会出现多少次地址转换？
+
+   2次，段、页
+
 2. 描述X86-32的MMU地址转换过程；
+
+   当开启段页式时，首先进行段转换，然后页转换，x86两级页表
 
 ### 7.4 了解UCORE建立段/页表
 
 1. 分析MMU的使能过程，尽可能详细地分析在执行进入保护械的代码“movl %eax, %cr0 ; ljmp $CODE_SEL, $0x0”时，CPU的状态和寄存器内容的变化。
 
+   首先加载了一个自映射的页目录表
+
+   ```
+    # load pa of boot pgdir
+    movl $REALLOC(__boot_pgdir), %eax
+    movl %eax, %cr3
+   ```
+
+   然后操作`cr0`的位，其中`CR0_PE`开启保护模式，`CR0_PG`开启页机制。
+
+   ```
+    orl $(CR0_PE | CR0_PG | CR0_AM | CR0_WP | CR0_NE | CR0_TS | CR0_EM | CR0_MP), %eax
+    andl $~(CR0_TS | CR0_EM), %eax
+   ```
+
 2. 分析页表的建立过程；
+
+   - 打开A20 gate, 加载GDT，将cr0 `CR0_PE_ON`位置1，进入保护模式使能段机制
+   - 建立一个自映射的页目录表/页表，起始地址cr3, 使能cr0的CR0_PG位
 
 ## 个人思考题
 
@@ -163,7 +210,10 @@ va 0xcd82c07c, pa 0x0c20907c, pde_idx 0x00000336, pde_ctx  0x00037003, pte_idx 0
 ## 页表自映射机制思考题
 
 1. (easy) 自映射的目的是什么？它相比线性映射的好处、不足是什么？
+
 2. (easy) Linux和Windows分别采用哪种映射机制（线性映射or自映射）？它们的选择背后有什么原因吗？
+
+   Linux线性，Windows自映射
 
 以下为optional：
 
