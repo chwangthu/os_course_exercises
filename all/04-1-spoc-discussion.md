@@ -20,30 +20,60 @@ re_os_lab, v9_cpu, os_course_spoc_exercises 　in github repos。这样可以在
 
 1. 寄存器、高速缓存、内存、外存的访问特征？
 
+   寄存器容量小，访问速度快；
+
+   高速缓存速度快而且容量大；
+
+   内存容量较大，速度较慢；
+
+   外存容量最大，速度最慢
+
 2. 如何理解计算机中的存储层次结构所的理想状态是“均衡繁忙”状态？
 
+   均衡繁忙是指，各种存储介质都处理繁忙状态，但又不构成系统瓶颈。因此这种情况下资源的利用率最大。
+
 3. 在你写程序时遇到过内存不够的情况吗？尝试过什么解决方法？
+
+   遇到过，尤其是c和c++程序，应该及时释放不用的内存。
 
 ### 8.2 覆盖和交换
 
 1. 什么是覆盖技术？使用覆盖技术的程序开发者的主要工作是什么？
 
+   覆盖技术是指将程序划分为独立的模块，这些模块之间可以不共用内存。
+
+   主要工作就是划分相应的模块。
+
 2. 什么是交换技术？覆盖与交换有什么不同？
+
+   交换技术是指将暂时不使用内存的进程放到外存。区别在于一个是进程为单位，一个是模块为单位。
 
 3. 覆盖和交换技术在现代计算机系统中还有需要吗？可能用在什么地方？
 
+   感觉有了虚存继续似乎不用了。
+
 4. 如何分析内核模块间的依赖关系？
 
+   depmod命令。
+
 5. 如何获取内核模块间的函数调用列表？
+
+   静态代码分析，动态函数调用跟踪。
 
 
 ### 8.3 局部性原理
 
 1. 什么是时间局部性、空间局部性和分支局部性？
 
+   时间局部性：访问的数据一段时间内会再次被访问
+
+   空间局部性：访问的数据周围的数据会再次被访问
+
+   分支局部性：跳转指令两次执行很可能跳转到相同的内存位置，其实就是指令的时间局部性
+
 2. 如何提高程序执行时的局部性特征？
 
-
+   写程序时注意跳转指令和数据访问的顺序
 
 3. 排序算法的局部性特征？
   * 参考：[九大排序算法再总结](http://blog.csdn.net/xiazdong/article/details/8462393)
@@ -52,24 +82,52 @@ re_os_lab, v9_cpu, os_course_spoc_exercises 　in github repos。这样可以在
 
 1. 什么是虚拟存储？它与覆盖和交换的区别是什么？它有什么好处和挑战？
 
+   虚拟存储为每个进程虚拟出了内存空间，只把当前指令需要的部分地址进程空间放在物理内存中。
+
+   区别：不需要分析函数的内部模块关系，是以页面为基本单位换入换出。
+
 2. 虚拟存储需要什么样的支持技术？
+
+   硬件完成**地址转换**，操作系统**置换算法**
 
 
 ### 8.5 虚拟页式存储
 
  1. 什么是虚拟页式存储？缺页中断处理的功能是什么？
 
+    虚拟页式存储是指一开始不将程序的所有页面加载进去，而是根据进程需要动态加载页面的技术。当内存使用已满时，还可以将部分页面换出到磁盘上。缺页中断处理可以帮助加载不在内存中的页面。
+
  1. 为了支持虚拟页式存储的实现，页表项有什么修改？
+
+    驻留位、修改位、有效位、访问位
 
 
  2. 页式存储和虚拟页式存储的区别是什么？
+
+    To be finished
 
 ### 8.6 缺页异常
 
 1. 缺页异常的处理流程？
 
+   6步：
+
+   > 1. 指令执行中的页表项引用；
+
+   > 2. 由于页面不在内存，导致缺页异常；
+
+   > 3. 在外存中查找需要访问的页面备份；
+
+   > 4. 页面换入；
+
+   > 5. 页表项修改；
+
+   > 6. 重新执行导致缺页异常的指令；
+
 
 2. 虚拟页式存储管理中有效存储访问时间是如何计算的？
+
+   EAT = 访存时间 * (1-p)  + 缺页异常处理时间 * 缺页率p 
 
 
 ## 个人思考题
@@ -98,6 +156,42 @@ time ./goodlocality
 ```
 可以看到其执行时间。
 
+```
+#include <stdio.h>
+
+int A[1024][1024];
+
+int main() {
+	for(int j=0; j<1024; j++)
+		for(int i=0; i<1024; i++)
+			A[i][j]=0;
+	printf("finished\n");
+	return 0;
+}
+~/Desktop » time ./badlocality                                                       clarencewang@Clarences-MacBook-Pro
+finished
+./badlocality  0.02s user 0.00s system 90% cpu 0.021 total
+
+#include <stdio.h>
+
+int A[1024][1024];
+
+int main() {
+	for(int j=0; j<1024; j++)
+		for(int i=0; i<1024; i++)
+			A[j][i]=0;
+	printf("finished\n");
+	return 0;
+}
+~/Desktop » time ./goodlocality                                                      clarencewang@Clarences-MacBook-Pro
+finished
+./goodlocality  0.00s user 0.00s system 46% cpu 0.013 total
+```
+
+可以看出明显的时间差别。
+
+
+
 ## 小组思考题目
 ----
 
@@ -105,11 +199,15 @@ time ./goodlocality
 
 （1）缺页异常可用于虚拟内存管理中。如果在中断服务例程中进行缺页异常的处理时，再次出现缺页异常，这时计算机系统（软件或硬件）会如何处理？请给出你的合理设计和解释。
 
+Double faults can only happen due to [kernel](https://en.wikipedia.org/wiki/Kernel_(computing)) bug. If the processor encounters a problem when calling the double fault handler, a [triple fault](https://en.wikipedia.org/wiki/Triple_fault) is generated and the processor shuts down.
+
 > 提示：https://en.wikipedia.org/wiki/Double_fault 和 https://en.wikipedia.org/wiki/Triple_fault
 
 ### 缺页异常次数计算
 （2）如果80386机器的一条机器指令(指字长4个字节)，其功能是把一个32位字的数据装入寄存器，指令本身包含了要装入的字所在的32位地址。这个过程在OS合理处理情况下最多会引起几次缺页异常？
 > 提示：内存中的指令和数据的地址需要考虑地址对齐和不对齐两种情况。需要考虑页目录表项invalid、页表项invalid、TLB缺失等是否会产生异常？
+
+TLB缺，页目录invalid，页表项invalid
 
 ### 虚拟页式存储的地址转换
 
