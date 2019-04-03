@@ -6,11 +6,19 @@
 
 1. 什么是程序？什么是进程？
 
+   程序是一段代码，可以被加载执行；而进程是具有一定独立功能的程序在一个数据集合上的一次动态执行过程
+
 
 2. 进程有哪些组成部分？
 
+   程序、数据、执行状态（CPU状态、内存状态）
+
 
 3. 请举例说明进程的独立性和制约性的含义。
+
+   独立性：各个进程有自己独立的内存空间，相互执行不影响
+
+   制约性：进程之间使用的都是CPU和内存资源，因此是相互制约的
 
 
 4. 程序和进程联系和区别是什么？
@@ -20,53 +28,127 @@
 
 1. 进程控制块的功能是什么？
 
+   管理和控制进程的信息
+
 
 2. 进程控制块中包括什么信息？
+
+   进程标识
+
+   进程控制信息：通信、资源、调度
+
+   进程处理机
 
 
 3. ucore的进展控制块数据结构定义中哪些字段？有什么作用？
 
-  
+   ```c
+   struct proc_struct {
+       enum proc_state state;                      // Process state
+       int pid;                                    // Process ID
+       int runs;                                   // the running times of Proces
+       uintptr_t kstack;                           // Process kernel stack
+       volatile bool need_resched;                 // bool value: need to be rescheduled to release CPU?
+       struct proc_struct *parent;                 // the parent process
+       struct mm_struct *mm;                       // Process's memory management field
+       struct context context;                     // Switch here to run process
+       struct trapframe *tf;                       // Trap frame for current interrupt
+       uintptr_t cr3;                              // CR3 register: the base addr of Page Directroy Table(PDT)
+       uint32_t flags;                             // Process flag
+       char name[PROC_NAME_LEN + 1];               // Process name
+       list_entry_t list_link;                     // Process link list 
+       list_entry_t hash_link;                     // Process hash list
+   };
+   ```
+
 ### 11.3 进程状态
 
 1. 进程生命周期中的相关事件有些什么？它们对应的进程状态变化是什么？
+
+   进程生命周期：创建、执行、等待、抢占、唤醒、结束
+
+   进程状态：创建、就绪、运行、等待、退出
+
+   状态变迁：抢占、唤醒、结束
 
 
 ### 11.4 三状态进程模型
 
 1. 运行、就绪和等待三种状态的含义？7个状态转换事件的触发条件是什么？
 
+   运行：进程在执行
+
+   就绪：已获取其他所有资源，等待CPU资源
+
+   等待：等待某个事件，处理暂停状态
+
+   7个状态转换事件：启动、进入就绪队列、被调度、时间片完、等待事件、事件发生、结束
+
 
 ### 11.5 挂起进程模型
 
 1. 引入挂起状态的目的是什么？
 
+   目的是减少进程占用的内存
+
 2. 引入挂起状态后，状态转换事件和触发条件有什么变化？
 
+   就绪分成了就绪挂起和就绪
+
+   等待分成了等待挂起和等待
+
+   多了激活和挂起两个变迁
+
 3. 内存中的什么内容放到外存中，就算是挂起状态？
+
+   进程内核栈被放到外存
 
 ### 11.6 线程的概念
 
 1. 引入线程的目的是什么？
 
+   为了高效利用CPU，在同一地址空间中实现函数的并发执行
+
 2. 什么是线程？
 
+   线程是进程中描述指令流执行状态的组成部分，是CPU调度的基本单位
+
 3. 进程与线程的联系和区别是什么？
- 
+
+   进程是资源分配单位，线程是CPU调度单位
+
+   进程拥有一个完整的资源平台，线程只独享指令流执行的必要资源，如寄存器和堆栈
+
+   线程能够减少并发执行的时间和空间开销
+
 ### 11.7 用户线程
 
 1. 什么是用户线程？
 
+   在用户空间中实现
+
 2. 用户线程的线程控制块保存在用户地址空间还是在内核地址空间？
+
+   用户地址空间
 
 
 ### 11.8 内核线程
 
 1. 用户线程与内核线程的区别是什么？
 
+   用户进程是由函数库在用户态实现的线程机制
+
+   内核线程是由内核通过系统调用实现的线程机制
+
+   区别：实现方式、TCB保存位置、运行开销、线程阻塞的影响范围
+
 2. 同一进程内的不同线程可以共用一个相同的内核栈吗？
 
+   用户进程是可以的
+
 3. 同一进程内的不同线程可以共用一个相同的用户栈吗？
+
+   不可以
 
 
 ## 选做题
@@ -147,7 +229,7 @@ Time     PID: 0
 
 ```
 
-   
+
 #### 例２
 ```
 $./process-simulation.py  -l 5:50,5:50
