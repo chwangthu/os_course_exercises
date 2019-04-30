@@ -56,7 +56,17 @@
 
 1. 尝试描述下列处理机调度算法的工作原理和算法优缺点。
    - 先来先服务算法（FCFC、FIFO）
+
+     优点：简单
+
+     缺点：平均等待时间可能波动比较大，IO和CPU利用率较低
+
    - 短进程优先算法（SPN、SJF）
+
+     优点：响应时间比较短
+
+     缺点：会导致饥饿现象
+
    - 最高响应比优先算法（HRRN）
 
  > 就绪队列的排队依据：到达时间、进程预期执行时间、按响应比R=(w+s)/s
@@ -72,7 +82,7 @@
  > 监控调度算法的执行状态、调度结果、算法特征等信息。
 
 ### 15.4 时间片轮转、多级反馈队列、公平共享调度算法和ucore调度框架
- 
+
 1. 尝试描述下列处理机调度算法的工作原理和算法优缺点。
    - 时间片轮转算法（RR）
    - 多级反馈队列算法（MLFQ）
@@ -107,7 +117,7 @@
  > 引入调度框架的目的：分离调度操作和调度策略，以支持多种调度算法；
 
  > 定义调度算法接口的考虑因素：调度算法需要的调度操作类型、调度算法在各调度操作中的体现方式；
- 
+
 6. 通过观察FIFO、SJF和RR调度算法的[模拟程序](https://github.com/chyyuu/os_tutorial_lab/blob/master/ostep/ostep8-scheduler.py)运行结果及其[描述文档](https://github.com/chyyuu/os_tutorial_lab/blob/master/ostep/ostep8-scheduler.md)，理解其工作原理和算法特征。
 
 7. 通过观察MLFQ调度算法的[模拟程序](https://github.com/chyyuu/os_tutorial_lab/blob/master/ostep/ostep9-mlfq.py)运行结果及其[描述文档](https://github.com/chyyuu/os_tutorial_lab/blob/master/ostep/ostep9-mlfq.md)，理解其工作原理和算法特征。
@@ -162,6 +172,8 @@
 
 4. ppt中“优先级继承”页里的图示有误，你能指出来吗？
 
+   t4-t6也是在临界区执行
+
 ## 小组练习与思考题
 
 参考往届同学的处理机调度算法实现练习，从下列8个算法中选择一个你感兴趣的调度算法，对其实现进行完善，并分析算法特征。
@@ -187,7 +199,7 @@
 
  - 何时切换？
  - 如何统计？
- 
+
 #### 执行结果
 
 采用FIFO调度算法

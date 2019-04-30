@@ -135,6 +135,7 @@ EXIT PROTOCOL (for Process i ):
 	turn = j ;
 ```
 
+不满足空闲则入，只能交替进入临界区
 
 5.下列二线程同步机制是否有误？请给出分析．
 
@@ -163,6 +164,8 @@ EXIT PROTOCOL (for Process i ):
 
 ```
 
+不满足忙则等待，有可能多个进程同时进入
+
 6.下列二线程同步机制是否有误？请给出分析．
 
 ```
@@ -188,6 +191,8 @@ EXIT PROTOCOL (for Process i ):
 	/* release the resource */
 	flags[i ] = FREE;
 ```
+
+不满足空闲则入，有可能所有进程都得不到资源
 
 7.下列二线程同步机制是否有误？请给出分析．
 
@@ -218,6 +223,8 @@ EXIT PROTOCOL (for Process i ):
 	flags[i ] = FREE;
 
 ```
+
+还是有可能都是BUSY，从而得不到资源
 
 8.下列二线程同步机制是否有误？请给出分析．
 
@@ -262,6 +269,8 @@ EXIT PROTOCOL (for Process i ):
 
 ```
 
+正确
+
 9.下列二线程同步机制是否有误？请给出分析． 
 
 ```
@@ -294,6 +303,8 @@ EXIT PROTOCOL (for Process i ):
 	flags[i ] = FREE;
 
 ```
+
+正确
 
 10.下列N线程同步机制是否有误？请给出分析． 
 
@@ -363,6 +374,7 @@ EXIT PROTOCOL (for Process i ):
 
 ```
 
+正确
 
 11.下列N线程同步机制是否有误？请给出分析． 
 
@@ -401,6 +413,8 @@ EXIT PROTOCOL (for Process i):
 /* tell everyone we are finished */
 flags[i] = -1;
 ```
+
+不正确，2个进程是正确的
 
 12.下列N线程同步机制是否有误？请给出分析． 
 
@@ -442,6 +456,8 @@ EXIT PROTOCOL (for Process i):
 	/* clear our number */
 	num[i] = 0;
 ```
+
+正确
 
 13.(spoc)基于“python, ruby, C, C++，LISP、JavaScript”等语言模拟实现Eisenberg同步算法，并给出覆盖所有枚举分类的测试用例，在实现报告写出设计思路和测试结果分析。
 
